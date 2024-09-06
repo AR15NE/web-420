@@ -1,11 +1,12 @@
 // Name: Amanda Rovey
-// Date: August 26th, 2024
+// Date: September 4th, 2024
 // File Name: app.js
 // Description: This file sets up the initial project structure and creates the server for the "In-N-Out-Books" application. Inspired by a love of books, “In-N-Out-Books” caters to users who want to manage their personal or shared book collections.
 
 // Require statements
 const express = require('express');
 const app = express();
+const books = require('../database/books'); 
 
 // Middleware functions
 app.use(express.json()); // Parses incoming requests with JSON payloads
@@ -58,6 +59,33 @@ app.get("/", async (req, res, next) => {
   </html>
   `; // end HTML content for the landing page
   res.send(html); // Sends the HTML content to the client
+});
+
+// GET route to return an array of books
+app.get('/api/books', async (req, res) => {
+    try {
+        const allBooks = await books.find();
+        res.json(allBooks);
+    } catch (error) {
+        res.status(500).json({ error: 'An error occurred while fetching books' });
+    }
+});
+
+// GET route to return a single book by id
+app.get('/api/books/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id, 10);
+        if (isNaN(id)) {
+            return res.status(400).json({ error: 'Invalid book id' });
+        }
+        const book = await books.findOne({ id });
+        if (!book) {
+            return res.status(404).json({ error: 'Book not found' });
+        }
+        res.json(book);
+    } catch (error) {
+        res.status(500).json({ error: 'An error occurred while fetching the book' });
+    }
 });
 
 // 404 Error Middleware
