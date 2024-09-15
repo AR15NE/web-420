@@ -1,12 +1,12 @@
 // Name: Amanda Rovey
-// Date: September 4th, 2024
+// Date: September 14th, 2024
 // File Name: app.js
 // Description: This file sets up the initial project structure and creates the server for the "In-N-Out-Books" application. Inspired by a love of books, “In-N-Out-Books” caters to users who want to manage their personal or shared book collections.
 
 // Require statements
 const express = require('express');
 const app = express();
-const books = require('../database/books'); 
+const books = require('../database/books');
 
 // Middleware functions
 app.use(express.json()); // Parses incoming requests with JSON payloads
@@ -86,6 +86,38 @@ app.get('/api/books/:id', async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: 'An error occurred while fetching the book' });
     }
+});
+
+// POST route to add a new book
+app.post('/api/books', async (req, res) => {
+  try {
+      const { id, title, author } = req.body;
+      if (!title) {
+          return res.status(400).json({ error: 'Book title is required' });
+      }
+      const newBook = { id, title, author };
+      await books.insertOne(newBook);
+      res.status(201).json(newBook);
+  } catch (error) {
+      res.status(500).json({ error: 'An error occurred while adding the book' });
+  }
+});
+
+// DELETE route to delete a book by id
+app.delete('/api/books/:id', async (req, res) => {
+  try {
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) {
+          return res.status(400).json({ error: 'Invalid book id' });
+      }
+      const result = await books.deleteOne({ id });
+      if (result.deletedCount === 0) {
+          return res.status(404).json({ error: 'Book not found' });
+      }
+      res.status(204).send();
+  } catch (error) {
+      res.status(500).json({ error: 'An error occurred while deleting the book' });
+  }
 });
 
 // 404 Error Middleware
