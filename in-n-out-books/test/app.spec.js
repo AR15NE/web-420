@@ -74,3 +74,50 @@ describe('Chapter 4: API Tests', () => {
       expect(response.status).toBe(204);
   });
 });
+
+describe('Chapter 5: API Tests', () => {
+  // Test for updating a book and returning a 204-status code
+  it('should update a book and return a 204-status code', async () => {
+      const updatedBook = { title: 'Updated Book', author: 'Updated Author' };
+      const response = await request(app)
+          .put('/api/books/1')
+          .send(updatedBook);
+      expect(response.status).toBe(204);
+  });
+
+  // Test for returning a 400-status code when using a non-numeric id
+  it('should return a 400-status code when using a non-numeric id', async () => {
+      const updatedBook = { title: 'Updated Book', author: 'Updated Author' };
+      const response = await request(app)
+          .put('/api/books/foo')
+          .send(updatedBook);
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Input must be a number');
+  });
+
+  // Test for returning a 400-status code when updating a book with a missing title
+  it('should return a 400-status code when updating a book with a missing title', async () => {
+      const updatedBook = { author: 'Updated Author' };
+      const response = await request(app)
+          .put('/api/books/1')
+          .send(updatedBook);
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Bad Request');
+  });
+});
+
+jest.mock('../database/books', () => ({
+  find: jest.fn(() => Promise.resolve(mockBooks)),
+  findOne: jest.fn((query) => Promise.resolve(mockBooks.find(book => book.id === query.id))),
+  insertOne: jest.fn((newBook) => Promise.resolve(newBook)),
+  deleteOne: jest.fn((query) => Promise.resolve({ deletedCount: mockBooks.find(book => book.id === query.id) ? 1 : 0 })),
+  updateOne: jest.fn((query, update) => {
+      const book = mockBooks.find(book => book.id === query.id);
+      if (book) {
+          Object.assign(book, update.$set);
+          return Promise.resolve({ matchedCount: 1 });
+      } else {
+          return Promise.resolve({ matchedCount: 0 });
+      }
+  })
+}));

@@ -120,6 +120,29 @@ app.delete('/api/books/:id', async (req, res) => {
   }
 });
 
+// PUT route to update a book by id
+app.put('/api/books/:id', async (req, res) => {
+  try {
+      let id = parseInt(req.params.id, 10);
+      if (isNaN(id)) {
+          return res.status(400).json({ error: 'Input must be a number' });
+      }
+      const { title, author } = req.body;
+      if (!title) {
+          return res.status(400).json({ error: 'Bad Request' });
+      }
+      const updatedBook = { id, title, author };
+      const result = await books.updateOne({ id }, { $set: updatedBook });
+      if (result.matchedCount === 0) {
+          return res.status(404).json({ error: 'Book not found' });
+      }
+      res.status(204).send();
+  } catch (err) {
+      console.error('Error: ', err.message);
+      res.status(500).json({ error: 'An error occurred while updating the book' });
+  }
+});
+
 // 404 Error Middleware
 app.use((req, res, next) => {
   res.status(404).send('404 Not Found');
