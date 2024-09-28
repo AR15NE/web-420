@@ -1,12 +1,14 @@
 // Name: Amanda Rovey
-// Date: September 14th, 2024
+// Date: September 25th, 2024
 // File Name: app.js
 // Description: This file sets up the initial project structure and creates the server for the "In-N-Out-Books" application. Inspired by a love of books, “In-N-Out-Books” caters to users who want to manage their personal or shared book collections.
 
 // Require statements
 const express = require('express');
+const bcrypt = require('bcryptjs'); // Add bcryptjs for password hashing
 const app = express();
 const books = require('../database/books');
+const users = require('../database/users'); // Assuming users.js exports an array of user objects
 
 // Middleware functions
 app.use(express.json()); // Parses incoming requests with JSON payloads
@@ -140,6 +142,37 @@ app.put('/api/books/:id', async (req, res) => {
   } catch (err) {
       console.error('Error: ', err.message);
       res.status(500).json({ error: 'An error occurred while updating the book' });
+  }
+});
+
+// POST route to log a user in
+app.post('/api/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    console.log('Login attempt:', email, password); // Log the login attempt
+
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Bad Request: Missing email or password' });
+    }
+
+    const user = await users.find({ email });
+    console.log('User found:', user); // Log the found user
+
+    if (!user) {
+      return res.status(401).json({ message: 'Unauthorized: Invalid email or password' });
+    }
+
+    const isPasswordValid = bcrypt.compareSync(password, user.password);
+    console.log('Password valid:', isPasswordValid); // Log the password validation result
+
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Unauthorized: Invalid email or password' });
+    }
+
+    res.status(200).json({ message: 'Authentication successful' });
+  } catch (error) {
+    console.error('Error: ', error.message);
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 
