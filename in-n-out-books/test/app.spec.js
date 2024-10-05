@@ -192,3 +192,34 @@ describe('Chapter 6: API Tests', () => {
     expect(res.body.message).toEqual('Bad Request: Missing email or password');
   });
 });
+
+
+// Unit test for the post route that verifies a user's security quesitons
+describe('Chapter 7: API Tests', () => {
+  // Test for successful verification of security questions
+  it('should return a 200 status with "Security questions successfully answered" message', async () => {
+    const res = await request(app)
+      .post('/api/users/test@example.com/verify-security-question')
+      .send({ answers: [{ answer: 'Fluffy' }, { answer: 'The Great Gatsby' }, { answer: 'Smith' }] });
+    expect(res.statusCode).toEqual(200);
+    expect(res.body.message).toEqual('Security questions successfully answered');
+  });
+
+  // Test for invalid request body
+  it('should return a 400 status code with "Bad Request" message when the request body fails ajv validation', async () => {
+    const res = await request(app)
+      .post('/api/users/test@example.com/verify-security-question')
+      .send({ answers: [{ answer: 'Fluffy' }, { answer: 'The Great Gatsby' }] }); // Missing one answer
+    expect(res.statusCode).toEqual(400);
+    expect(res.body.message).toEqual('Bad Request: Invalid request body');
+  });
+
+  // Test for incorrect answers
+  it('should return a 401 status code with "Unauthorized" message when the security questions are incorrect', async () => {
+    const res = await request(app)
+      .post('/api/users/test@example.com/verify-security-question')
+      .send({ answers: [{ answer: 'Wrong' }, { answer: 'Answers' }, { answer: 'Here' }] });
+    expect(res.statusCode).toEqual(401);
+    expect(res.body.message).toEqual('Unauthorized: Incorrect answers');
+  });
+});

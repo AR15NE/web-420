@@ -13,7 +13,7 @@ class Collection {
 
   /**
    * @description Finds all items in the collection that match the query
-   * @param {*} query The query object to search for 
+   * @param {*} query The query object to search for
    * @returns {Promise} A promise that resolves with the items that match the query
    */
   find(query = {}) {
@@ -27,7 +27,7 @@ class Collection {
   /**
    * @description Finds the first item in the collection that matches the query
    * @param {*} query The query object to search for
-   * @returns {Promise} A promise that resolves with the first item that matches the query 
+   * @returns {Promise} A promise that resolves with the first item that matches the query
    */
   findOne(query) {
     // Find the first item in the data array that matches the query
@@ -57,9 +57,9 @@ class Collection {
 
   /**
    * @description Updates an item in the collection
-   * @param {*} query The query object to search for 
-   * @param {*} update The item to update in the collection   
-   * @returns {Promise} A promise that resolves with the updated item 
+   * @param {*} query The query object to search for
+   * @param {*} update The item to update in the collection
+   * @returns {Promise} A promise that resolves with the updated item
    */
   updateOne(query, update) {
      // Find the first item in the data array that matches the query
@@ -103,3 +103,4 @@ class Collection {
 }
 
 module.exports = Collection; // Export the Collection class
+

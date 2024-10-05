@@ -176,6 +176,59 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+// POST route to verify security questions
+app.post('/api/users/:email/verify-security-question', async (req, res) => {
+  try {
+    const { email } = req.params;
+    const { answers } = req.body;
+
+    // Validate request body using ajv
+    const Ajv = require('ajv');
+    const ajv = new Ajv();
+    const schema = {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          answer: { type: 'string' }
+        },
+        required: ['answer'],
+        additionalProperties: false
+      }
+    };
+    const validate = ajv.compile(schema);
+    if (!validate(answers)) {
+      return res.status(400).json({ message: 'Bad Request: Invalid request body' });
+    }
+
+    // Find user by email
+    const user = await users.find({ email });
+    if (!user) {
+      return res.status(401).json({ message: 'Unauthorized: User not found' });
+    }
+
+    // Check if the number of answers matches the number of security questions
+    if (answers.length !== user.securityQuestions.length) {
+      return res.status(400).json({ message: 'Bad Request: Invalid request body' });
+    }
+
+    // Compare answers
+    const isAnswersValid = user.securityQuestions.every((question, index) => {
+      return question.answer === answers[index].answer;
+    });
+
+    if (!isAnswersValid) {
+      return res.status(401).json({ message: 'Unauthorized: Incorrect answers' });
+    }
+
+    res.status(200).json({ message: 'Security questions successfully answered' });
+  } catch (error) {
+    console.error('Error: ', error.message);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+
 // 404 Error Middleware
 app.use((req, res, next) => {
   res.status(404).send('404 Not Found');
